@@ -11,7 +11,6 @@
 #define STACK_SIZE (1024 * 1024)
 
 typedef short mythread_id;
-
 typedef struct {
     mythread_id id;
     void* (*start_routine)(void*);
@@ -32,6 +31,7 @@ int child_function(void *arg) {
     while(!args->joined) {
         sleep(1);
     }
+
     return 0;
 }
 
@@ -54,6 +54,9 @@ int mythread_create(mythread_t* thread, void* (*start_routine)(void*), void* arg
     thread->id = id++;
     thread->start_routine = start_routine;
     thread->arg = arg;
+    thread->exited = 0;
+    thread->joined = 0;
+    thread->retval = NULL;
 
     int child_pid = clone(
         child_function,
@@ -66,17 +69,16 @@ int mythread_create(mythread_t* thread, void* (*start_routine)(void*), void* arg
         free(stack);
         return -1;
     }
+
     return 0;
 }
 
-int mythread_join(mythread_t* thread, void** retval) {
+void mythread_join(mythread_t* thread, void** retval) {
     while (!thread->exited) {
-        sleep (1);
+        sleep(1);
     }
     *retval = thread->retval;
     thread->joined = 1;
-
-    return 0;
 }
 
 // Example usage

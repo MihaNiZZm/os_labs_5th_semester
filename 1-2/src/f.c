@@ -26,4 +26,6 @@ int main() {
             return -1;
         }
     }
+
+    pthread_attr_destroy(&attr);
 }

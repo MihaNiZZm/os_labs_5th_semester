@@ -33,6 +33,7 @@ int main() {
     err = pthread_create(&thread1, &attr, new_thread, (void*) item);
     if (err) {
         printf("main: pthread_create() failed: %s\n", strerror(err));
+        free(item);
         return -1;
     }
 

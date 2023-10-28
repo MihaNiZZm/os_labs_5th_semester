@@ -22,7 +22,7 @@ void* thread1(void* arg) {
 }
 
 void sigint_handler(int sig) {
-    printf("Received SIGINT in Thread 2\n");
+    write(0, "Received SIGINT in Thread 2\n", 28);
 }
 
 void* thread2(void* arg) {

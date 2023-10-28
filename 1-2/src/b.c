@@ -25,7 +25,12 @@ int main() {
         return -1;
     }
     int* res;
-    pthread_join(thread1, (void**) &res);
+    err = pthread_join(thread1, (void**) &res);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
+    
     printf("Main thread: [%d]. Got number %d from new thread.\n", gettid(), *res);
     free(res);
 }

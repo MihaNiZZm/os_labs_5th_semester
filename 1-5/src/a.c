@@ -73,9 +73,21 @@ int main() {
     }
     
     // Wait for threads to finish
-    pthread_join(t1, NULL);
-    pthread_join(t2, NULL);
-    pthread_join(t3, NULL);
+    err = pthread_join(t1, NULL);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
+    err = pthread_join(t2, NULL);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
+    err = pthread_join(t3, NULL);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
     
     return 0;
 }

@@ -43,9 +43,17 @@ int main() {
         return -1;
     }
     sleep(5);
-    pthread_cancel(thread1);
+    err = pthread_cancel(thread1);
+    if (err) {
+        printf("main: pthread_cancel() failed: %s\n", strerror(err));
+        return -1;
+    }
 
-    pthread_join(thread1, NULL);
+    err = pthread_join(thread1, NULL);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
 
     printf("Main thread: [%d]\n", gettid());
 }

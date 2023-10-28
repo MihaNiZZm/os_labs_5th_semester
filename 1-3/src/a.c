@@ -29,7 +29,11 @@ int main() {
         printf("main: pthread_create() failed: %s\n", strerror(err));
         return -1;
     }
-    pthread_join(thread1, NULL);
+    err = pthread_join(thread1, NULL);
+    if (err) {
+        printf("main: pthread_join() failed: %s\n", strerror(err));
+        return -1;
+    }
 
     printf("Main thread: [%d]\n", gettid());
 }

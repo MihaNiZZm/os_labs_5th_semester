@@ -1,24 +1,7 @@
-#define _GNU_SOURCE
-#include <sched.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <sys/mman.h>
+#include "my_thread_create.h"
 
-#define STACK_SIZE (1024 * 1024)
-
-typedef short mythread_id;
-typedef struct {
-    mythread_id id;
-    void* (*start_routine)(void*);
-    void* arg;
-    void* retval;
-    volatile int joined;
-    volatile int exited;
-} mythread_t;
+#define PAGE_SIZE 4096
+#define STACK_SIZE 100 * PAGE_SIZE
 
 int child_function(void *arg) {
     mythread_t *args = (mythread_t*) arg;
@@ -35,16 +18,37 @@ int child_function(void *arg) {
     return 0;
 }
 
+void *create_stack(long stack_size, mythread_id id) {
+    char* stack_file = malloc(sizeof(char) * 16);
+    int stack_fd;
+    void* stack;
+    
+    snprintf(stack_file, 15, "stack-%d", id);
+    stack_fd = open(stack_file, O_RDWR | O_CREAT, 0660);
+    if (stack_fd == -1) {
+        perror("Couldn't create a file for a child's thread stack");
+        return NULL;
+    }
+    ftruncate(stack_fd, 0);
+    ftruncate(stack_fd, stack_size);
+
+    stack = mmap(NULL, stack_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, stack_fd, 0);
+    if (close(stack_fd) < 0) {
+        perror("Couldn't close stack file descriptor");
+        munmap(stack, stack_size);
+    }
+
+    memset(stack, 0, stack_size);
+
+    return stack;
+}
+
 int mythread_create(mythread_t* thread, void* (*start_routine)(void*), void* arg) {
     static mythread_id id = 0;
 
-    void* stack = (void*) malloc(STACK_SIZE);
-    if (!stack) {
-        perror("Couldn't allocate memory for a stack of a new thread");
-        return -1;
-    }
+    void* stack = create_stack(STACK_SIZE, id);
 
-    thread = malloc(sizeof(mythread_t));
+    thread = (mythread_t*) malloc(sizeof(mythread_t));
     if (!thread) {  
         perror("Couldn't allocate memory for new thread arguments");
         free(stack);
@@ -79,21 +83,4 @@ void mythread_join(mythread_t* thread, void** retval) {
     }
     *retval = thread->retval;
     thread->joined = 1;
-}
-
-// Example usage
-void* my_thread_function(void *arg) {
-    printf("Hello from my_thread_function\n");
-    return NULL;
-}
-
-int main() {
-    mythread_t new_thread;
-    void* retval;
-    if (mythread_create(&new_thread, my_thread_function, NULL) != 0) {
-        perror("Couldn't create custom thread.");
-    }
-    mythread_join(&new_thread, &retval);
-
-    return 0;
 }

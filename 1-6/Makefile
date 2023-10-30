@@ -5,7 +5,7 @@ refresh_files:
 	mkdir ./exe/
 
 compile_sources:
-	gcc -g -Wall -I"./src/" src/my_thread_create.c -lpthread -o my_thread_create.out
+	gcc -g -Wall -I"./src/" src/my_thread_create.c src/main.c -lpthread -o mythread_test.out
 
 distribute_compiled_files:
-	mv my_thread_create.out ./exe/
+	mv mythread_test.out ./exe/

@@ -26,8 +26,11 @@ void sigint_handler(int sig) {
 }
 
 void* thread2(void* arg) {
-    // Signal handler for SIGINT (Ctrl+C)
-    signal(SIGINT, &sigint_handler);
+    struct sigaction sa;
+    sa.sa_handler = sigint_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGINT, &sa, NULL);
     
     while (1) {
         // Infinite loop to keep the thread running

@@ -26,7 +26,6 @@ void* new_thread(void* arg) {
 
     while (1) {
         printf("%s\n", hello_str);
-        pthread_testcancel(); // Проверка на запрос отмены
     }
 
     pthread_cleanup_pop(1); // Вызываем функцию очистки, освобождение памяти

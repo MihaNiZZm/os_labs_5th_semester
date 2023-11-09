@@ -39,6 +39,7 @@ int main() {
         printf("Child thread #%d pthread_t: %ld\n", i, threads[i]);
     }
     sleep(5);
+    free(threads);
     printf("main: global_var: %d\n", global_var);
 	return 0;
 }

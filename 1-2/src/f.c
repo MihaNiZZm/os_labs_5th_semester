@@ -13,11 +13,19 @@ void* new_thread(void* arg) {
 }
 
 int main() {
+    int err;
     pthread_t thread1;
     pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    int err;
+    err = pthread_attr_init(&attr);
+    if (err) {
+        printf("pthread_attr_init failed: %s\n", strerror(err));
+        return -1;
+    }
+    err = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (err) {
+        printf("pthread_attr_setdetachstate failed: %s\n", strerror(err));
+        return -1;
+    }
 
     while (1) {
         err = pthread_create(&thread1, &attr, new_thread, NULL);

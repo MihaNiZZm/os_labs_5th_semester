@@ -37,5 +37,6 @@ int main() {
     }
 	
     sleep(5);
+    free(threads);
 	return 0;
 }

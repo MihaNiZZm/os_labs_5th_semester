@@ -22,6 +22,6 @@ int main() {
 	    printf("main: pthread_create() failed: %s\n", strerror(err));
 		return -1;
 	}
-    sleep(5);
+	sleep(5);
 	return 0;
 }

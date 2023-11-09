@@ -38,5 +38,6 @@ int main() {
         printf("Child thread #%d pthread_t: %ld\n", i, threads[i]);
     }
     sleep(40);
+    free(threads);
 	return 0;
 }

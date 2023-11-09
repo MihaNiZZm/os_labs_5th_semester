@@ -26,7 +26,11 @@ int main() {
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     int err;
-    my_struct* item = malloc(sizeof(my_struct));
+    my_struct* item = (my_struct*) malloc(sizeof(my_struct));
+    if (!item) {
+        perror("Malloc failed.\n");
+        return -1;
+    }
     item->int_val = 42;
     item->string = "!dlrow olleH";
 

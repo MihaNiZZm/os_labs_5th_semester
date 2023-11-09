@@ -8,7 +8,12 @@
 #include <unistd.h>
 
 void* new_thread(void* arg) {
-    pthread_detach(pthread_self());
+    int err;
+    err = pthread_detach(pthread_self());
+    if (err) {
+        printf("pthread_detach failed: %s\n", strerror(err));
+        return NULL;
+    }
     printf("New thread: [%d]\n", gettid());
     return NULL;
 }

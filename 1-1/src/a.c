@@ -19,7 +19,7 @@ int main() {
 
 	err = pthread_create(&tid, NULL, mythread, NULL);
 	if (err) {
-	    printf("main: pthread_create() failed: %s\n", strerror(err));
+		printf("main: pthread_create() failed: %s\n", strerror(err));
 		return -1;
 	}
 	sleep(5);

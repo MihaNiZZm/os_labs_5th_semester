@@ -35,6 +35,7 @@ int main() {
         err = pthread_create(&threads[i], NULL, mythread, NULL);
         if (err) {
             printf("main: pthread_create() failed: %s\n", strerror(err));
+            free(threads);
             return -1;
         }
     }

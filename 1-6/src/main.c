@@ -1,5 +1,4 @@
-#include "my_thread_create.h"
-
+#include "mythread_create.h"
 
 void* my_thread_function(void *arg) {
     printf("Hello from my_thread_function\n");
@@ -12,7 +11,7 @@ int main() {
     if (mythread_create(&new_thread, my_thread_function, NULL) != 0) {
         perror("Couldn't create custom thread.");
     }
-    mythread_join(&new_thread, &retval);
+    mythread_join(new_thread, &retval);
 
     return 0;
 }

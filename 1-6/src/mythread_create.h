@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <errno.h>
 
 typedef void* (*start_routine_t)(void*);
 typedef struct _mythread {

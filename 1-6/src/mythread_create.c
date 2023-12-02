@@ -4,6 +4,7 @@
 #define STACK_SIZE 100 * PAGE_SIZE
 
 void* create_stack(long stack_size, int id) {
+    int err;
     char stack_file[128];
     int stack_fd;
     void* stack;
@@ -14,12 +15,18 @@ void* create_stack(long stack_size, int id) {
         perror("Couldn't create a file for a child's thread stack");
         return NULL;
     }
-    ftruncate(stack_fd, 0);
-    ftruncate(stack_fd, stack_size);
+    err = ftruncate(stack_fd, 0);
+    if (err == -1) {
+        printf("ftruncate for stack file failed. Error message: %s\n", strerror(errno));
+    }
+    err = ftruncate(stack_fd, stack_size);
+    if (err == -1) {
+        printf("ftruncate for stack failed. Error message: %s\n", strerror(errno));
+    }
 
     stack = mmap(NULL, stack_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, stack_fd, 0);
     if (close(stack_fd) < 0) {
-        perror("Couldn't close stack file descriptor");
+        printf("Couldn't close stack file descriptor Error message: %s\n", strerror(errno));
         munmap(stack, stack_size);
         return NULL;
     }
@@ -49,6 +56,7 @@ int thread_startup(void* arg) {
 }
 
 int mythread_create(mythread_t* mytid, void* (*start_routine)(void*), void* arg) {
+    int err;
     static int mythread_id = 0;
     mythread_struct_t* thread;
     int child_pid;
@@ -59,7 +67,10 @@ int mythread_create(mythread_t* mytid, void* (*start_routine)(void*), void* arg)
     printf("Mythread create: creating thread #%d\n", mythread_id);
 
     child_stack = create_stack(STACK_SIZE, mythread_id);
-    mprotect(child_stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
+    err = mprotect(child_stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
+    if (err == -1) {
+        printf("mprotect failed. Error message: %s\n", strerror(errno));
+    }
     memset(child_stack + PAGE_SIZE, 0x7f, STACK_SIZE - PAGE_SIZE);
 
     thread = (mythread_struct_t*) (child_stack + STACK_SIZE - sizeof(mythread_struct_t));
@@ -81,7 +92,7 @@ int mythread_create(mythread_t* mytid, void* (*start_routine)(void*), void* arg)
         thread
     );
     if (child_pid == -1) {
-        printf("Clone failed\n");
+        printf("Clone failed. Error message: %s\n", strerror(errno));
         return -1;
     }
 

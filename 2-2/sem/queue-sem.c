@@ -74,7 +74,6 @@ void queue_destroy(queue_t *q) {
 }
 
 int queue_add(queue_t *q, int val) {
-    q->add_attempts++;
 
     assert(q->count <= q->max_count);
 
@@ -92,6 +91,8 @@ int queue_add(queue_t *q, int val) {
 
     // Acquire the mutex before modifying the queue
     pthread_mutex_lock(&q->mutex);
+
+    q->add_attempts++;
 
     if (!q->first)
         q->first = q->last = new;
@@ -113,8 +114,6 @@ int queue_add(queue_t *q, int val) {
 }
 
 int queue_get(queue_t *q, int *val) {
-    q->get_attempts++;
-
     assert(q->count >= 0);
 
     // Wait for an item to become available
@@ -122,6 +121,8 @@ int queue_get(queue_t *q, int *val) {
 
     // Acquire the mutex before modifying the queue
     pthread_mutex_lock(&q->mutex);
+
+    q->get_attempts++;
 
     qnode_t *tmp = q->first;
 

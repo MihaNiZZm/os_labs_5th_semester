@@ -178,6 +178,13 @@ void* swapper(void* arg) {
         struct Node *current_node = NULL;
 
         while (1) {
+            if (!need_to_swap()) {
+                // move element
+                struct Node *next_node = current_node == NULL ? get_head(storage) : get_next(current_node);
+                current_node = next_node;
+                continue;
+            }
+
             struct Node *next_node = current_node == NULL ? get_head(storage) : get_next(current_node);
             if (next_node == NULL) {
                 unlock_node(current_node);
@@ -193,15 +200,13 @@ void* swapper(void* arg) {
             }
             wlock_node(next_next_node);
 
-            if (need_to_swap()) {
-                if (current_node != NULL) {
-                    set_next(current_node, next_next_node);
-                }
-                set_next(next_node, get_next(next_next_node));
-                set_next(next_next_node, next_node);
-
-                atomic_store(&swaps_counter, swaps_counter + 1);
+            if (current_node != NULL) {
+                set_next(current_node, next_next_node);
             }
+            set_next(next_node, get_next(next_next_node));
+            set_next(next_next_node, next_node);
+
+            atomic_store(&swaps_counter, swaps_counter + 1);
 
             unlock_node(next_next_node);
             unlock_node(next_node);

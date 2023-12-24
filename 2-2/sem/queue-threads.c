@@ -68,7 +68,7 @@ void *writer(void *arg) {
 		i++;
 
 		// Эмулируем ожидание в потоке-писателе
-        usleep(1);
+        // usleep(1);
 	}
 
 	return NULL;

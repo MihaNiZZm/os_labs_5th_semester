@@ -59,7 +59,7 @@ int read_request(int client_socket, char *request) {
     }
 
     request[bytes_read] = '\0';
-    printf("Received from client: %s\n", request);
+    printf("TID: %d | Received a message from a client.\n", gettid());
     return 0;
 }
 
@@ -93,6 +93,50 @@ int connect_to_remote_host(char *host) {
     return destination_socket;
 }
 
+int parse_host_via_url(char* request, unsigned char* resolved_host) {
+    char *host_start = strstr(request, "http://");
+    if (host_start == NULL) {
+        return -1;
+    }
+    host_start += strlen("http://");
+
+    const char *host_end = strchr(host_start, '/');
+    if (host_end == NULL) {
+        return -1;
+    }
+
+    size_t host_length = host_end - host_start;
+    if (host_length <= 0) {
+        return -1;
+    }
+    strncpy(resolved_host, host_start, host_length);
+    resolved_host[host_length] = '\0';
+
+    return 0;
+}
+
+int parse_host_from_request_body(char* request, unsigned char* resolved_host) {
+    char *host_start = strstr(request, "Host:");
+    if (host_start == NULL) {
+        return -1;
+    }
+    host_start += strlen("Host:");
+
+    const char *host_end = strpbrk(host_start, " \r\n:");
+    if (host_end == NULL) {
+        return -1;
+    }
+
+    size_t host_length = host_end - host_start;
+    if (host_length <= 0) {
+        return -1;
+    }
+    strncpy(resolved_host, host_start, host_length);
+    resolved_host[host_length] = '\0';
+
+    return 0;
+}
+
 void *handle_connection(void *arg) {
     context *connection_context = (context *)arg;
     int client_socket = connection_context->client_socket;
@@ -101,16 +145,16 @@ void *handle_connection(void *arg) {
     strcpy(request, request0);
 
     unsigned char host[HOST_LENGTH];
-    unsigned char *host_result = memcpy(host, strstr((char *)request, "Host:") + 6, sizeof(host));
-    for (int i = 0; i < sizeof(host); i++) {
-        if (host_result[i] == ':' || host_result[i] == '\n' || host_result[i] == '\r' || host_result[i] == ' ') {
-            host_result[i] = '\0';
-            break;
+    if (parse_host_from_request_body(request, host) != 0) {
+        if (parse_host_via_url(request, host) != 0) {
+            printf("TID: %d | Error parsing host from request.\n", gettid());
+            close(client_socket);
+            free(request0);
+            return NULL;
         }
     }
-    host[host_result - host - 1] = '\0';
 
-    int destination_socket = connect_to_remote_host((char *)host_result);
+    int destination_socket = connect_to_remote_host((char *)host);
     if (destination_socket == -1) {
         close(client_socket);
         return NULL;
@@ -126,7 +170,7 @@ void *handle_connection(void *arg) {
     char *buffer = calloc(BUFFER_SIZE, sizeof(char));
     ssize_t bytes_read;
     while ((bytes_read = read(destination_socket, buffer, BUFFER_SIZE)) > 0) {
-        printf("Received from remote server: %s\n", buffer);
+        printf("TID: %d | Received a response from remote server.\n", gettid());
         bytes_sent = write(client_socket, buffer, bytes_read);
         if (bytes_sent == -1) {
             close(client_socket);
@@ -134,7 +178,7 @@ void *handle_connection(void *arg) {
             free(buffer);
             return NULL;
         }
-        printf("Sent to client: %s\n", buffer);
+        printf("TID: %d | Sent a response to a client.\n", gettid());
     }
 
     close(client_socket);
